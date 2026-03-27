@@ -128,7 +128,7 @@ def _resolve_installer_manifest_download_info_from_channel(module_ctx, channel_u
         return struct(
             url = visual_studio_installer_manifest_url,
             integrity = "",
-            sha256 = vc_manifest_component_package.get("sha256", ""),
+            sha256 = "",  # TODO: `use vc_manifest_component_package.get("sha256", ""),` when Microsoft fixes their channel feed...
         )
 
     fail("failed to find installer manifest URL in Visual Studio channel manifest")
