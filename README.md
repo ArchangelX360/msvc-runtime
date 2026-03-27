@@ -43,16 +43,16 @@ See https://visualstudio.microsoft.com/license-terms for more information.
 
 ## Reproducibility
 
-Visual Studio installer manifest is resolved from the channel URL specified by `visual_studio_channel_url` (defaulting to `https://aka.ms/vs/stable/channel`).
-The result of this resolution is cached in your `MODULE.bazel.lock` to ensure subsequent reproducibility.
+Visual Studio installer manifest URL is resolved from the channel URL specified by `visual_studio_channel_url` (defaulting to `https://aka.ms/vs/stable/channel`).
+That URL resolution is cached in your `MODULE.bazel.lock` to ensure reproducibility.
 
 However, alternatively you could set the Visual Studio installer manifest URL and integrity manually to avoid channel resolution:
 
 ```starlark
 bazel_dep(name = "windows", version = "0.0.1")
 
-visual_studio_installer_manifest_url = ""
-visual_studio_installer_manifest_integrity = ""
+visual_studio_installer_manifest_url = "https://download.visualstudio.microsoft.com/download/pr/fdc37f6e-59f6-4054-838a-b476eeaa6ec3/1d82370739911457e0a2f6be15d8b5f569531b352b2eabb961429eea1e99e356/VisualStudio.vsman"
+visual_studio_installer_manifest_integrity = "a8e854fa9f3fbaeac27d7304e297f1660d7137401389deb57cf7983f33c16fef"
 
 msvc_runtime = use_extension("@windows//windows/extensions.bzl", "msvc_runtime")
 msvc_runtime.configure(
