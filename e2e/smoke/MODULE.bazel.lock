@@ -477,9 +477,10 @@
     },
     "@@windows+//windows:extensions.bzl%msvc_runtime": {
       "general": {
-        "bzlTransitiveDigest": "w0uYao0YlllDpx8TSJNLKezFFTApmzxoSXorqTjZeV8=",
+        "bzlTransitiveDigest": "aRrvPG5YIGp2Va/KNAtElfaMUrWd5BdfnBtx0dSpjxc=",
         "usagesDigest": "JAzGSrT798PlzxYa1xG+CKO2CDpwOm5qrRKYptANkiQ=",
         "recordedInputs": [
+          "REPO_MAPPING:windows+,bazel_tools bazel_tools",
           "ENV:BAZEL_MSVC_RUNTIME_VISUAL_STUDIO_EULA 1"
         ],
         "generatedRepoSpecs": {
@@ -494,8 +495,7 @@
                 "arm64"
               ],
               "installer_manifest_url": "https://download.visualstudio.microsoft.com/download/pr/fdc37f6e-59f6-4054-838a-b476eeaa6ec3/1d82370739911457e0a2f6be15d8b5f569531b352b2eabb961429eea1e99e356/VisualStudio.vsman",
-              "installer_manifest_integrity": "",
-              "installer_manifest_sha256": ""
+              "installer_manifest_integrity": ""
             }
           }
         },
@@ -511,9 +511,11 @@
     },
     "@@windows+//windows:extensions.bzl%windows_sdk": {
       "general": {
-        "bzlTransitiveDigest": "w0uYao0YlllDpx8TSJNLKezFFTApmzxoSXorqTjZeV8=",
+        "bzlTransitiveDigest": "aRrvPG5YIGp2Va/KNAtElfaMUrWd5BdfnBtx0dSpjxc=",
         "usagesDigest": "qECbBiSH1Uup80NQv5xVzee7TaAOqAs5vViTS+xIbPo=",
-        "recordedInputs": [],
+        "recordedInputs": [
+          "REPO_MAPPING:windows+,bazel_tools bazel_tools"
+        ],
         "generatedRepoSpecs": {
           "windows_sdk": {
             "repoRuleId": "@@windows+//windows/private/extensions:windows_sdk.bzl%_windows_sdk_repository",
@@ -528,8 +530,7 @@
               "slim": true,
               "windows_sysroot_transformations": {},
               "installer_manifest_url": "https://download.visualstudio.microsoft.com/download/pr/fdc37f6e-59f6-4054-838a-b476eeaa6ec3/1d82370739911457e0a2f6be15d8b5f569531b352b2eabb961429eea1e99e356/VisualStudio.vsman",
-              "installer_manifest_integrity": "",
-              "installer_manifest_sha256": ""
+              "installer_manifest_integrity": ""
             }
           }
         },
@@ -553,7 +554,6 @@
           "visual_studio_installer_manifest_integrity": "",
           "visual_studio_installer_manifest_url": ""
         },
-        "sha256": "",
         "url": "https://download.visualstudio.microsoft.com/download/pr/fdc37f6e-59f6-4054-838a-b476eeaa6ec3/1d82370739911457e0a2f6be15d8b5f569531b352b2eabb961429eea1e99e356/VisualStudio.vsman"
       }
     },
@@ -565,7 +565,6 @@
           "visual_studio_installer_manifest_integrity": "",
           "visual_studio_installer_manifest_url": ""
         },
-        "sha256": "",
         "url": "https://download.visualstudio.microsoft.com/download/pr/fdc37f6e-59f6-4054-838a-b476eeaa6ec3/1d82370739911457e0a2f6be15d8b5f569531b352b2eabb961429eea1e99e356/VisualStudio.vsman"
       }
     }
