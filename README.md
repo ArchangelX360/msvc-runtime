@@ -66,17 +66,42 @@ visual_studio_installer_manifest_integrity = "sha256-qOhU+p8/uurCfXME4pfxZg1xN0A
 
 msvc_runtime = use_extension("@windows//windows/extensions.bzl", "msvc_runtime")
 msvc_runtime.configure(
-  msvc_version = "14.50.35717",  # Ensures that this exact version is in the installer manifest of the Visual Studio channel used
-  visual_studio_installer_manifest_url = visual_studio_installer_manifest_url,
-  visual_studio_installer_manifest_integrity = visual_studio_installer_manifest_integrity,
+    msvc_version = "14.50.35717",  # Ensures that this exact version is in the installer manifest of the Visual Studio channel used
+    visual_studio_installer_manifest_url = visual_studio_installer_manifest_url,
+    visual_studio_installer_manifest_integrity = visual_studio_installer_manifest_integrity,
 )
 use_repo(msvc_runtime, "msvc_runtime")
 
 windows_sdk = use_extension("@windows//windows/extensions.bzl", "windows_sdk")
 windows_sdk.configure(
-  windows_sdk_version = "10.0.26100",
-  visual_studio_installer_manifest_url = visual_studio_installer_manifest_url,
-  visual_studio_installer_manifest_integrity = visual_studio_installer_manifest_integrity,
+    windows_sdk_version = "10.0.26100",
+    visual_studio_installer_manifest_url = visual_studio_installer_manifest_url,
+    visual_studio_installer_manifest_integrity = visual_studio_installer_manifest_integrity,
+)
+use_repo(windows_sdk, "windows_sdk")
+```
+
+## Case-sensitive filesystem support
+
+This is an example on how case-sensitive filesystems can be supported.
+This example does two things:
+
+- naively lowercases (while keeping originals) headers and libraries files, either by symlinking (if supported) or copying them
+- transforms (while keeping originals) to some cased variant observed in some C sources in the wild, either by symlinking (if supported) or copying them
+
+```starlark
+windows_sdk = use_extension("@windows//windows/extensions.bzl", "windows_sdk")
+windows_sdk.configure(
+    windows_sdk_version = "10.0.26100",
+    windows_sysroot_transformations = {
+        "WindowsKits/10/Include/10.0.26100.0/shared/driverspecs.h": "WindowsKits/10/Include/10.0.26100.0/shared/DriverSpecs.h",
+        "WindowsKits/10/Include/10.0.26100.0/shared/specstrings.h": "WindowsKits/10/Include/10.0.26100.0/shared/SpecStrings.h",
+        "WindowsKits/10/Include/10.0.26100.0/um/ole2.h": "WindowsKits/10/Include/10.0.26100.0/um/Ole2.h",
+        "WindowsKits/10/Include/10.0.26100.0/um/olectl.h": "WindowsKits/10/Include/10.0.26100.0/um/OleCtl.h",
+        "**/*.h": "lowercase",
+        "**/*.lib": "lowercase",
+        "**/*.Lib": "lowercase",
+    },
 )
 use_repo(windows_sdk, "windows_sdk")
 ```
