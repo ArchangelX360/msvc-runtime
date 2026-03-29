@@ -2,8 +2,8 @@
 
 load("@bazel_tools//tools/build_defs/repo:cache.bzl", "get_default_canonical_id")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "update_attrs")
-load(":common.bzl", "DEFAULT_ARCHITECTURES")
 
+_DEFAULT_ARCHITECTURES = ["x64", "arm64"]
 _SYSROOT_DIR = "sysroot"
 _COMMON_PACKAGE = "Microsoft.Windows.SDK.CPP"
 _ARCH_PACKAGES = {
@@ -18,6 +18,36 @@ def _basename(path):
 
 def _normalize_relpath(path):
     return path.replace("\\", "/")
+
+def _keep_only_children(repository_ctx, directory, child_names):
+    if not directory.exists or not directory.is_dir:
+        return
+    allowed = {name: True for name in child_names}
+    for entry in directory.readdir():
+        if allowed.get(_basename(entry), False):
+            continue
+        repository_ctx.delete(entry)
+
+def _keep_exposed_windows_sdk_files(repository_ctx, sysroot_dir, include_version, architectures):
+    _keep_only_children(repository_ctx, repository_ctx.path(sysroot_dir), ["base"] + architectures)
+    _keep_only_children(repository_ctx, repository_ctx.path("{}/base".format(sysroot_dir)), ["c"])
+    _keep_only_children(repository_ctx, repository_ctx.path("{}/base/c".format(sysroot_dir)), ["Include"])
+    _keep_only_children(repository_ctx, repository_ctx.path("{}/base/c/Include".format(sysroot_dir)), [include_version])
+    _keep_only_children(
+        repository_ctx,
+        repository_ctx.path("{}/base/c/Include/{}".format(sysroot_dir, include_version)),
+        ["ucrt", "shared", "um", "winrt"],
+    )
+
+    seen_architectures = {}
+    for arch in architectures:
+        if seen_architectures.get(arch, False):
+            continue
+        seen_architectures[arch] = True
+        _keep_only_children(repository_ctx, repository_ctx.path("{}/{}".format(sysroot_dir, arch)), ["c"])
+        _keep_only_children(repository_ctx, repository_ctx.path("{}/{}/c".format(sysroot_dir, arch)), ["ucrt", "um"])
+        _keep_only_children(repository_ctx, repository_ctx.path("{}/{}/c/ucrt".format(sysroot_dir, arch)), [arch])
+        _keep_only_children(repository_ctx, repository_ctx.path("{}/{}/c/um".format(sysroot_dir, arch)), [arch])
 
 def _windows_sdk_package_url(package_name, version):
     return "https://www.nuget.org/api/v2/package/{}/{}".format(package_name, version.lower())
@@ -191,6 +221,7 @@ def _windows_sdk_repository_impl(repository_ctx):
     )
 
     _apply_transformations(repository_ctx)
+    _keep_exposed_windows_sdk_files(repository_ctx, _SYSROOT_DIR, include_version, requested_architectures)
 
     repository_ctx.template(
         "BUILD.bazel",
@@ -214,7 +245,7 @@ def _windows_sdk_repository_impl(repository_ctx):
 
 _WINDOWS_SDK_ATTR = {
     "architectures": attr.string_list(
-        default = DEFAULT_ARCHITECTURES,
+        default = _DEFAULT_ARCHITECTURES,
         doc = "Architectures of the Windows SDK to download additionally to the base",
     ),
     "windows_sdk_version": attr.string(
@@ -278,7 +309,7 @@ def _read_configure_tag(module_ctx):
         windows_sdk_version = "",
         windows_sdk_integrity = {},
         transformations = {},
-        architectures = DEFAULT_ARCHITECTURES,
+        architectures = _DEFAULT_ARCHITECTURES,
     )
 
 def _windows_sdk_extension_impl(module_ctx):

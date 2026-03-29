@@ -18,7 +18,7 @@ bazel_dep(name = "windows", version = "0.0.1")
 # Warning: using `msvc_runtime` extension requires the machine to have the right to use the MSVC runtime, see section below for more information.
 msvc_runtime = use_extension("@windows//windows:extensions.bzl", "msvc_runtime")
 msvc_runtime.configure(
-  msvc_version = "14.50.35717",  # Ensures that this exact version is in the installer manifest of the Visual Studio channel used
+  msvc_version = "14.50.35717",
 )
 use_repo(msvc_runtime, "msvc_runtime")
 

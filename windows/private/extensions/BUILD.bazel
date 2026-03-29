@@ -4,18 +4,15 @@ bzl_library(
     name = "msvc_runtime",
     srcs = ["msvc_runtime.bzl"],
     visibility = ["//windows:__subpackages__"],
-    deps = [":common"],
+    deps = ["@bazel_tools//tools/build_defs/repo:utils.bzl"],
 )
 
 bzl_library(
     name = "windows_sdk",
     srcs = ["windows_sdk.bzl"],
     visibility = ["//windows:__subpackages__"],
-    deps = [":common"],
-)
-
-bzl_library(
-    name = "common",
-    srcs = ["common.bzl"],
-    visibility = ["//windows:__subpackages__"],
+    deps = [
+        "@bazel_tools//tools/build_defs/repo:cache.bzl",
+        "@bazel_tools//tools/build_defs/repo:utils.bzl",
+    ],
 )

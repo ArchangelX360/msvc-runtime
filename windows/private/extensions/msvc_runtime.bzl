@@ -1,8 +1,9 @@
 """bzlmod extension for assembling an MSVC runtime repository."""
 
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "update_attrs")
-load(":common.bzl", "DEFAULT_ARCHITECTURES", "DEFAULT_VS_CHANNEL_URL", "ensure_winarchive_tools_binary", "run_winarchive_tools")
 
+_DEFAULT_ARCHITECTURES = ["x64", "arm64"]
+_DEFAULT_VS_CHANNEL_URL = "https://aka.ms/vs/stable/channel"
 _INSTALLER_MANIFEST_DOWNLOADS_DIR = "installer_manifest_downloads"
 _INSTALLER_MANIFEST_FACTS_KEY = "visual_studio_installer_manifest_v1"
 _VISUAL_STUDIO_MANIFEST_COMPONENT = "Microsoft.VisualStudio.Manifests.VisualStudio"
@@ -174,31 +175,51 @@ def _collect_vctools_packages(installer_manifest, architectures):
 
     return vctools_packages
 
-def _vctools_output_info(archive_path, has_arch):
-    if not archive_path.startswith("Contents/VC/Tools/MSVC/"):
-        return None
+def _basename(path):
+    path_str = str(path).replace("\\", "/")
+    return path_str[path_str.rfind("/") + 1:]
 
-    parts = archive_path.split("/")
-    if len(parts) < 6 or parts[5].lower() not in ["include", "lib"]:
-        return None
-    if parts[5].lower() == "lib" and (len(parts) < 7 or not has_arch.get(parts[6].lower(), False)):
-        return None
+def _keep_only_children(repository_ctx, directory, child_names):
+    if not directory.exists or not directory.is_dir:
+        return
+    allowed = {name: True for name in child_names}
+    for entry in directory.readdir():
+        if allowed.get(_basename(entry), False):
+            continue
+        repository_ctx.delete(entry)
 
-    return struct(
-        output_path = archive_path[len("Contents/"):],
-        version = parts[4],
+def _keep_exposed_runtime_files(repository_ctx, sysroot_dir, msvc_version, architectures):
+    sysroot_path = repository_ctx.path(sysroot_dir)
+    contents_dir = repository_ctx.path("{}/Contents".format(sysroot_dir))
+    vc_dir = repository_ctx.path("{}/Contents/VC".format(sysroot_dir))
+    tools_dir = repository_ctx.path("{}/Contents/VC/Tools".format(sysroot_dir))
+    msvc_dir = repository_ctx.path("{}/Contents/VC/Tools/MSVC".format(sysroot_dir))
+
+    _keep_only_children(repository_ctx, sysroot_path, ["Contents"])
+    _keep_only_children(repository_ctx, contents_dir, ["VC"])
+    _keep_only_children(repository_ctx, vc_dir, ["Tools"])
+    _keep_only_children(repository_ctx, tools_dir, ["MSVC"])
+    _keep_only_children(repository_ctx, msvc_dir, [msvc_version])
+    _keep_only_children(
+        repository_ctx,
+        repository_ctx.path("{}/Contents/VC/Tools/MSVC/{}".format(sysroot_dir, msvc_version)),
+        ["include", "lib"],
+    )
+    _keep_only_children(
+        repository_ctx,
+        repository_ctx.path("{}/Contents/VC/Tools/MSVC/{}/lib".format(sysroot_dir, msvc_version)),
+        architectures,
     )
 
 def _msvc_runtime_repository_impl(repository_ctx):
-    winarchive_tools = ensure_winarchive_tools_binary(repository_ctx, "msvc_runtime")
-    winarchive_tools_dir = "sysroot"
+    sysroot_dir = "sysroot"
 
     architectures = repository_ctx.attr.architectures
     if not architectures:
         fail("no architectures specified")
-    has_arch = {}
-    for arch in architectures:
-        has_arch[arch] = True
+    msvc_version = repository_ctx.attr.msvc_version
+    if not msvc_version:
+        fail("msvc_version must be set")
 
     installer_manifest = _download_installer_manifest(
         repository_ctx,
@@ -216,8 +237,10 @@ def _msvc_runtime_repository_impl(repository_ctx):
         pkg = packages[package_id]
         payloads = pkg.get("payloads", [])
         payload = payloads[0]
-        file_name = payload.get("fileName", "").replace("\\", "/")
-        local_path = "winarchive_tools_downloads/vctools/{}/{}".format(package_id.replace("\\", "_").replace("/", "_").replace(":", "_"), file_name)
+        file_name = _basename(payload.get("fileName", ""))
+        if not file_name.lower().endswith(".zip"):
+            file_name = file_name + ".zip"
+        local_path = "msvc_runtime_downloads/vctools/{}/{}".format(package_id.replace("\\", "_").replace("/", "_").replace(":", "_"), file_name)
         vsix_paths.append(local_path)
 
         download_kwargs = {
@@ -234,54 +257,20 @@ def _msvc_runtime_repository_impl(repository_ctx):
     for token in pending_vsix_downloads:
         token.wait()
 
-    msvc_versions_seen = {}
-    for index, vsix_path in enumerate(vsix_paths):
-        listing_path = "winarchive_tools_specs/msvc_runtime_listing_{}.json".format(index)
-        run_winarchive_tools(
-            repository_ctx,
-            winarchive_tools.path,
-            ["zip-list", "--input", vsix_path, "--out", listing_path],
-            "winarchive-tools zip-list {}".format(vsix_path),
-        )
-        listing = json.decode(repository_ctx.read(listing_path), default = None)
-        if listing == None:
-            fail("winarchive-tools zip-list {} returned invalid JSON in {}".format(vsix_path, listing_path))
+    for vsix_path in vsix_paths:
+        repository_ctx.extract(vsix_path, output = sysroot_dir)
 
-        layout_entries = []
-        for archive_path in listing.get("entries", []):
-            output_info = _vctools_output_info(archive_path, has_arch)
-            if output_info == None:
-                continue
-            layout_entries.append({
-                "archive_path": archive_path,
-                "output_path": output_info.output_path,
-            })
-            msvc_versions_seen[output_info.version] = True
-
-        if not layout_entries:
-            continue
-
-        layout_path = "winarchive_tools_specs/msvc_runtime_{}.json".format(index)
-        repository_ctx.file(layout_path, json.encode({"entries": layout_entries}))
-        run_winarchive_tools(
-            repository_ctx,
-            winarchive_tools.path,
-            ["zip-extract", "--input", vsix_path, "--layout", layout_path, "--out-dir", winarchive_tools_dir],
-            "winarchive-tools zip-extract {}".format(vsix_path),
-        )
-
-    msvc_versions = sorted(msvc_versions_seen.keys())
-    if len(msvc_versions) != 1:
-        fail("expected exactly one MSVC version, got {}".format(msvc_versions))
-    if repository_ctx.attr.msvc_version and repository_ctx.attr.msvc_version != msvc_versions[0]:
-        fail("resolved MSVC version {} does not match requested msvc_version {}".format(msvc_versions[0], repository_ctx.attr.msvc_version))
+    requested_version_dir = repository_ctx.path("{}/Contents/VC/Tools/MSVC/{}".format(sysroot_dir, msvc_version))
+    if not requested_version_dir.exists or not requested_version_dir.is_dir:
+        fail("failed to find Contents/VC/Tools/MSVC/{} in extracted MSVC payloads".format(msvc_version))
+    _keep_exposed_runtime_files(repository_ctx, sysroot_dir, msvc_version, architectures)
 
     repository_ctx.template(
         "BUILD.bazel",
         repository_ctx.attr._build_file,
         substitutions = {
-            "__WINARCHIVE_TOOLS_DIR__": winarchive_tools_dir,
-            "__MSVC_VERSION__": msvc_versions[0],
+            "__MSVC_RUNTIME_DIR__": sysroot_dir,
+            "__MSVC_VERSION__": msvc_version,
         },
     )
 
@@ -302,12 +291,11 @@ def _msvc_runtime_repository_impl(repository_ctx):
 
 _MSVC_RUNTIME_ATTR = {
     "architectures": attr.string_list(
-        default = DEFAULT_ARCHITECTURES,
+        default = _DEFAULT_ARCHITECTURES,
         doc = "Architectures to extract from the resolved MSVC runtime components",
     ),
     "msvc_version": attr.string(
-        default = "",
-        doc = "Optional expected MSVC tools version. If set, extraction fails when the resolved payloads contain a different version.",
+        doc = "Required expected MSVC tools version. Only files under Contents/VC/Tools/MSVC/<msvc_version> are extracted.",
     ),
     "installer_manifest_url": attr.string(
         doc = "URL of the resolved/specified Visual Studio installer manifest",
@@ -317,12 +305,6 @@ _MSVC_RUNTIME_ATTR = {
     ),
     "installer_manifest_sha256": attr.string(
         doc = "Optional integrity (as sha256 hash) of the resolved/specified Visual Studio installer manifest",
-    ),
-    "winarchive_tools_urls": attr.string_dict(
-        doc = "Optional map from <os>_<arch> to prebuilt winarchive-tools binary URL. If not set, pinned defaults are used.",
-    ),
-    "winarchive_tools_integrity": attr.string_dict(
-        doc = "Optional map from <os>_<arch> to winarchive-tools binary SRI integrity.",
     ),
 }
 
@@ -355,10 +337,8 @@ def _read_configure_tag(module_ctx):
         return non_root_tags[0]
     return struct(
         msvc_version = "",
-        winarchive_tools_urls = {},
-        winarchive_tools_integrity = {},
-        architectures = DEFAULT_ARCHITECTURES,
-        visual_studio_channel_url = DEFAULT_VS_CHANNEL_URL,
+        architectures = _DEFAULT_ARCHITECTURES,
+        visual_studio_channel_url = _DEFAULT_VS_CHANNEL_URL,
         visual_studio_installer_manifest_url = "",
         visual_studio_installer_manifest_integrity = "",
     )
@@ -379,8 +359,6 @@ def _msvc_runtime_extension_impl(module_ctx):
     _msvc_runtime_repository(
         name = repository_name,
         msvc_version = config.msvc_version,
-        winarchive_tools_urls = config.winarchive_tools_urls,
-        winarchive_tools_integrity = config.winarchive_tools_integrity,
         architectures = config.architectures,
         installer_manifest_url = installer_manifest["url"],
         installer_manifest_integrity = installer_manifest["integrity"],
@@ -397,7 +375,7 @@ msvc_runtime = module_extension(
     tag_classes = {
         "configure": tag_class(attrs = _MSVC_RUNTIME_ATTR | {
             "visual_studio_channel_url": attr.string(
-                default = DEFAULT_VS_CHANNEL_URL,
+                default = _DEFAULT_VS_CHANNEL_URL,
                 doc = "Visual Studio release channel URL used to resolve the installer manifest, use `visual_studio_installer_manifest_url` and `visual_studio_installer_manifest_integrity` for reproducibility instead",
             ),
             "visual_studio_installer_manifest_url": attr.string(

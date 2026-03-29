@@ -198,28 +198,6 @@
   },
   "selectedYankedVersions": {},
   "moduleExtensions": {
-    "@@pybind11_bazel+//:internal_configure.bzl%internal_configure_extension": {
-      "general": {
-        "bzlTransitiveDigest": "06cynZ1bCvvy8zHPrrDlXq+Z68xmjctHpfFxi+zEpJY=",
-        "usagesDigest": "D1r3lfzMuUBFxgG8V6o0bQTLMk3GkaGOaPzw53wrwyw=",
-        "recordedInputs": [
-          "REPO_MAPPING:pybind11_bazel+,bazel_tools bazel_tools",
-          "FILE:@@pybind11_bazel+//MODULE.bazel e6f4c20442eaa7c90d7190d8dc539d0ab422f95c65a57cc59562170c58ae3d34"
-        ],
-        "generatedRepoSpecs": {
-          "pybind11": {
-            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
-            "attributes": {
-              "build_file": "@@pybind11_bazel+//:pybind11-BUILD.bazel",
-              "strip_prefix": "pybind11-2.12.0",
-              "urls": [
-                "https://github.com/pybind/pybind11/archive/v2.12.0.zip"
-              ]
-            }
-          }
-        }
-      }
-    },
     "@@rules_kotlin+//src/main/starlark/core/repositories:bzlmod_setup.bzl%rules_kotlin_extensions": {
       "general": {
         "bzlTransitiveDigest": "ABI1D/sbS1ovwaW/kHDoj8nnXjQ0oKU9fzmzEG4iT8o=",
@@ -477,8 +455,8 @@
     },
     "@@windows+//windows:extensions.bzl%msvc_runtime": {
       "general": {
-        "bzlTransitiveDigest": "aRrvPG5YIGp2Va/KNAtElfaMUrWd5BdfnBtx0dSpjxc=",
-        "usagesDigest": "JAzGSrT798PlzxYa1xG+CKO2CDpwOm5qrRKYptANkiQ=",
+        "bzlTransitiveDigest": "+e6N3lqM54Ma7YnyLgMy2rjISo2F/xXimtinQRySv2o=",
+        "usagesDigest": "Wg6GZmsBlXwo0OSHmoMDqlRn+J84HVPPhAtMB9vgTZc=",
         "recordedInputs": [
           "REPO_MAPPING:windows+,bazel_tools bazel_tools",
           "ENV:BAZEL_MSVC_RUNTIME_VISUAL_STUDIO_EULA 1"
@@ -488,14 +466,12 @@
             "repoRuleId": "@@windows+//windows/private/extensions:msvc_runtime.bzl%_msvc_runtime_repository",
             "attributes": {
               "msvc_version": "14.50.35717",
-              "winarchive_tools_urls": {},
-              "winarchive_tools_integrity": {},
               "architectures": [
                 "x64",
                 "arm64"
               ],
               "installer_manifest_url": "https://download.visualstudio.microsoft.com/download/pr/fdc37f6e-59f6-4054-838a-b476eeaa6ec3/1d82370739911457e0a2f6be15d8b5f569531b352b2eabb961429eea1e99e356/VisualStudio.vsman",
-              "installer_manifest_integrity": ""
+              "installer_manifest_integrity": "sha256-qOhU+p8/uurCfXME4pfxZg1xN0ATid61fPeYPzPBb+8="
             }
           }
         },
@@ -511,8 +487,8 @@
     },
     "@@windows+//windows:extensions.bzl%windows_sdk": {
       "general": {
-        "bzlTransitiveDigest": "aRrvPG5YIGp2Va/KNAtElfaMUrWd5BdfnBtx0dSpjxc=",
-        "usagesDigest": "qECbBiSH1Uup80NQv5xVzee7TaAOqAs5vViTS+xIbPo=",
+        "bzlTransitiveDigest": "+e6N3lqM54Ma7YnyLgMy2rjISo2F/xXimtinQRySv2o=",
+        "usagesDigest": "dmvEAFLOUc4Qa2pS5VGoobg2WfMRyehQcd3rZ5ikSWw=",
         "recordedInputs": [
           "REPO_MAPPING:windows+,bazel_tools bazel_tools"
         ],
@@ -520,44 +496,21 @@
           "windows_sdk": {
             "repoRuleId": "@@windows+//windows/private/extensions:windows_sdk.bzl%_windows_sdk_repository",
             "attributes": {
-              "winarchive_tools_urls": {},
-              "winarchive_tools_integrity": {},
-              "architectures": [
-                "x64",
-                "arm64"
-              ],
-              "windows_sdk_version": "10.0.26100",
-              "slim": true,
-              "transformations": {},
-              "installer_manifest_url": "https://download.visualstudio.microsoft.com/download/pr/fdc37f6e-59f6-4054-838a-b476eeaa6ec3/1d82370739911457e0a2f6be15d8b5f569531b352b2eabb961429eea1e99e356/VisualStudio.vsman",
-              "installer_manifest_integrity": ""
-            }
-          }
-        },
-        "moduleExtensionMetadata": {
-          "explicitRootModuleDirectDeps": [
-            "windows_sdk"
-          ],
-          "explicitRootModuleDirectDevDeps": [],
-          "useAllRepos": "NO",
-          "reproducible": false
-        }
-      }
-    },
-    "@@windows+//windows:extensions.bzl%windows_sdk": {
-      "general": {
-        "bzlTransitiveDigest": "kFao8wjYnc4dXDxiWXl+8hsMwZyC2LgMdxJN+mQhVhc=",
-        "usagesDigest": "Mq31EYNGhQ4LtmPHffl8h3P3zmhegrkUmk3kjJwpiO8=",
-        "recordedInputs": [
-          "REPO_MAPPING:windows+,bazel_tools bazel_tools"
-        ],
-        "generatedRepoSpecs": {
-          "windows_sdk": {
-            "repoRuleId": "@@windows+//windows/private/extensions:windows_sdk.bzl%_windows_sdk_repository",
-            "attributes": {
-              "windows_sdk_version": "10.0.28000.1-rtm",
-              "windows_sdk_integrity": {},
-              "transformations": {},
+              "windows_sdk_version": "10.0.26100.7705",
+              "windows_sdk_integrity": {
+                "Microsoft.Windows.SDK.CPP": "sha256-/0VWYL7gcadEcVqWZWZvopwHaBV509gVlZqe7FpVZCQ=",
+                "Microsoft.Windows.SDK.CPP.x64": "sha256-rWzpD/lAEGmdKVSLPCseUsieuBFD4hmRVdmlw4ABtSs=",
+                "Microsoft.Windows.SDK.CPP.arm64": "sha256-A7wMA9Q5zvhQdLvNQl+dXTptO0Z5Z6zSHaO6bf7q+mc="
+              },
+              "transformations": {
+                "base/c/Include/10.0.26100.0/shared/driverspecs.h": "base/c/Include/10.0.26100.0/shared/DriverSpecs.h",
+                "base/c/Include/10.0.26100.0/shared/specstrings.h": "base/c/Include/10.0.26100.0/shared/SpecStrings.h",
+                "base/c/Include/10.0.26100.0/um/ole2.h": "base/c/Include/10.0.26100.0/um/Ole2.h",
+                "base/c/Include/10.0.26100.0/um/olectl.h": "base/c/Include/10.0.26100.0/um/OleCtl.h",
+                "**/*.h": "lowercase",
+                "**/*.lib": "lowercase",
+                "**/*.Lib": "lowercase"
+              },
               "architectures": [
                 "x64",
                 "arm64"
@@ -579,22 +532,11 @@
   "facts": {
     "@@windows+//windows:extensions.bzl%msvc_runtime": {
       "visual_studio_installer_manifest_v1": {
-        "integrity": "",
+        "integrity": "sha256-qOhU+p8/uurCfXME4pfxZg1xN0ATid61fPeYPzPBb+8=",
         "request": {
           "visual_studio_channel_url": "https://aka.ms/vs/stable/channel",
-          "visual_studio_installer_manifest_integrity": "",
-          "visual_studio_installer_manifest_url": ""
-        },
-        "url": "https://download.visualstudio.microsoft.com/download/pr/fdc37f6e-59f6-4054-838a-b476eeaa6ec3/1d82370739911457e0a2f6be15d8b5f569531b352b2eabb961429eea1e99e356/VisualStudio.vsman"
-      }
-    },
-    "@@windows+//windows:extensions.bzl%windows_sdk": {
-      "visual_studio_installer_manifest_v1": {
-        "integrity": "",
-        "request": {
-          "visual_studio_channel_url": "https://aka.ms/vs/stable/channel",
-          "visual_studio_installer_manifest_integrity": "",
-          "visual_studio_installer_manifest_url": ""
+          "visual_studio_installer_manifest_integrity": "sha256-qOhU+p8/uurCfXME4pfxZg1xN0ATid61fPeYPzPBb+8=",
+          "visual_studio_installer_manifest_url": "https://download.visualstudio.microsoft.com/download/pr/fdc37f6e-59f6-4054-838a-b476eeaa6ec3/1d82370739911457e0a2f6be15d8b5f569531b352b2eabb961429eea1e99e356/VisualStudio.vsman"
         },
         "url": "https://download.visualstudio.microsoft.com/download/pr/fdc37f6e-59f6-4054-838a-b476eeaa6ec3/1d82370739911457e0a2f6be15d8b5f569531b352b2eabb961429eea1e99e356/VisualStudio.vsman"
       }
